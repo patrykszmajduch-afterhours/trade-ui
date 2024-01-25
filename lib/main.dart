@@ -1,10 +1,44 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:trade_app_ui/chartTest.dart';
+import 'package:trade_app_ui/coinData.dart';
+
+Future<Album> fetchAlbum() async {
+  final response = await http
+      .get(Uri.parse('https://jsonplaceholder.typicode.com/albums/1'));
+
+  if (response.statusCode == 200) {
+    // If the server did return a 200 OK response,
+    // then parse the JSON.
+    return Album.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+  } else {
+    // If the server did not return a 200 OK response,
+    // then throw an exception.
+    throw Exception('Failed to load album');
+  }
+}
+
+Future<List<CoinData>> fetchCoins() async {
+  final response =
+      await http.get(Uri.parse('http://localhost:5005/trace/getCoins'));
+
+  if (response.statusCode == 200) {
+    // If the server did return a 200 OK response,
+    // then parse the JSON.
+    jsonDecode(response.body);
+    // return CoinData.fromJson( as CoinData[]);
+    final List body = json.decode(response.body);
+    return body
+        .map((e) => CoinData.fromJson(e as Map<String, dynamic>))
+        .toList();
+  } else {
+    // If the server did not return a 200 OK response,
+    // then throw an exception.
+    throw Exception('Failed to load coins list');
+  }
+}
 
 class PlotData {
   final double value; //todo;change this to money variable
@@ -68,16 +102,15 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  late Future<Album> futureAlbum;
-
+  late Future<List<CoinData>> futureCoins;
   @override
   void initState() {
     super.initState();
-    futureAlbum = fetchAlbum();
+    this.futureCoins = fetchCoins();
   }
 
   void onPressed() {
-    this.futureAlbum = fetchAlbum();
+    this.futureCoins = fetchCoins();
   }
 
   @override
@@ -92,13 +125,14 @@ class _MyAppState extends State<MyApp> {
           title: const Text('Fetch Data Example'),
         ),
         body: Center(
-            child: Column(
-          children: <Widget>[
-            FutureBuilder<Album>(
-              future: futureAlbum,
+            child: Expanded(
+          child: SizedBox(
+            child: FutureBuilder<List<CoinData>>(
+              future: futureCoins,
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
-                  return Text(snapshot.data!.title);
+                  final posts = snapshot.data!;
+                  return buildCoins(posts);
                 } else if (snapshot.hasError) {
                   return Text('${snapshot.error}');
                 }
@@ -106,13 +140,36 @@ class _MyAppState extends State<MyApp> {
                 return const CircularProgressIndicator();
               },
             ),
-            FilledButton(onPressed: onPressed, child: const Text('Filled')),
-            Text('Deliver features faster'),
-            Text('Craft beautiful UIs'),
-            // BarChartSample2()
-          ],
+          ),
+          // FilledButton(onPressed: onPressed, child: const Text('Filled')),
+          // Text('Deliver features faster'),
+          // Text('Craft beautiful UIs'),
+          // BarChartSample2()
         )),
       ),
     );
   }
+}
+
+Widget buildCoins(List<CoinData> coins) {
+  return ListView.builder(
+    itemCount: coins.length,
+    itemBuilder: (context, index) {
+      final coin = coins[index];
+      return Container(
+        color: Colors.grey.shade300,
+        margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+        padding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
+        height: 100,
+        width: double.maxFinite,
+        child: Row(
+          children: [
+            // Expanded(flex: 1, child: Image.network(post.url!)),
+            SizedBox(width: 10),
+            Expanded(flex: 3, child: Text(coin.code!)),
+          ],
+        ),
+      );
+    },
+  );
 }
