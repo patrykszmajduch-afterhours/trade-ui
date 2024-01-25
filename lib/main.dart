@@ -20,7 +20,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     this.futureCoins = getCoins();
-    this.coinValues = fetchCoinValues();
+    // this.coinValues = fetchCoinValues();
   }
 
   void onPressed() {
@@ -39,50 +39,43 @@ class _MyAppState extends State<MyApp> {
           title: const Text('Fetch Data Example'),
         ),
         body: Center(
-            child: Expanded(
-          child: SizedBox(
-            child: FutureBuilder<List<CoinData>>(
-              future: futureCoins,
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  final coin = snapshot.data!;
-                  return buildCoins(coin);
-                } else if (snapshot.hasError) {
-                  return Text('${snapshot.error}');
-                }
-                // By default, show a loading spinner.
-                return const CircularProgressIndicator();
-              },
-            ),
+          child: FutureBuilder<List<CoinData>>(
+            future: futureCoins,
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                final coin = snapshot.data!;
+                return buildCoins(coin);
+              } else if (snapshot.hasError) {
+                return Text('${snapshot.error}');
+              }
+              // By default, show a loading spinner.
+              return const CircularProgressIndicator();
+            },
           ),
-          // FilledButton(onPressed: onPressed, child: const Text('Filled')),
-          // Text('Deliver features faster'),
-          // Text('Craft beautiful UIs'),
-          // BarChartSample2()
-        )),
+        ),
+        // FilledButton(onPressed: onPressed, child: const Text('Filled')),
+        // Text('Deliver features faster'),
+        // Text('Craft beautiful UIs'),
+        // BarChartSample2()
       ),
     );
   }
 }
 
 Widget buildCoins(List<CoinData> coins) {
+  int selectedIndex = -1;
+
   return ListView.builder(
     itemCount: coins.length,
     itemBuilder: (context, index) {
       final coin = coins[index];
-      return Container(
-        color: Colors.grey.shade300,
-        margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-        padding: EdgeInsets.symmetric(vertical: 5, horizontal: 5),
-        height: 100,
-        width: double.maxFinite,
-        child: Row(
-          children: [
-            // Expanded(flex: 1, child: Image.network(post.url!)),
-            SizedBox(width: 10),
-            Expanded(flex: 3, child: Text(coin.code!)),
-          ],
-        ),
+      return ListTile(
+        title: Text(coin.code),
+        tileColor: selectedIndex == index ? Colors.blue : Colors.amber,
+        onTap: () {
+          selectedIndex = index;
+          coins.clear();
+        },
       );
     },
   );
