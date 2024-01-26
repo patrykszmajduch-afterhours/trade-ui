@@ -3,14 +3,14 @@ class CoinValue {
   final int rank;
   final String symbol;
   final String name;
-  final double supply;
-  final double maxSupply;
-  final double marketCapUsd;
-  final double volumeUsd24Hr;
-  final double priceUsd;
-  final double changePercent24Hr;
-  final double vwap24Hr;
-  final String explorer;
+  final double? supply;
+  final double? maxSupply;
+  final double? marketCapUsd;
+  final double? volumeUsd24Hr;
+  final double? priceUsd;
+  final double? changePercent24Hr;
+  final double? vwap24Hr;
+  final String? explorer;
 
   CoinValue(
       {required this.id,
@@ -28,17 +28,18 @@ class CoinValue {
 
   factory CoinValue.fromJson(Map<String, dynamic> json) {
     return CoinValue(
-        id: json['id'],
-        rank: json['rank'],
-        symbol: json['symbol'],
-        name: json['name'],
-        supply: json['supply'],
-        maxSupply: json['maxSupply'],
-        marketCapUsd: json['marketCapUsd'],
-        volumeUsd24Hr: json['volumeUsd24Hr'],
-        priceUsd: json['priceUsd'],
-        changePercent24Hr: json['changePercent24Hr'],
-        vwap24Hr: json['vwap24Hr'],
-        explorer: json['explorer']);
+      id: json['id'] ?? '',
+      rank: json['rank'] ?? 0,
+      symbol: json['symbol'] ?? '',
+      name: json['name'] ?? '',
+      supply: (json['supply'] as num?)?.toDouble(),
+      maxSupply: (json['maxSupply'] as num?)?.toDouble(),
+      marketCapUsd: (json['marketCapUsd'] as num?)?.toDouble(),
+      volumeUsd24Hr: (json['volumeUsd24Hr'] as num?)?.toDouble(),
+      priceUsd: (json['priceUsd'] as num?)?.toDouble(),
+      changePercent24Hr: (json['changePercent24Hr'] as num?)?.toDouble(),
+      vwap24Hr: (json['vwap24Hr'] as num?)?.toDouble(),
+      explorer: json['explorer'] ?? '',
+    );
   }
 }
