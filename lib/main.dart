@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:http/http.dart' as http;
 import 'package:trade_app_ui/data/CoinValue.dart';
+import 'package:trade_app_ui/data/MarketData.dart';
 import 'package:trade_app_ui/services/CoinServices.dart';
 
 void main() => runApp(MyApp());
@@ -24,11 +25,13 @@ class CoinPage extends StatefulWidget {
 class _CoinPageState extends State<CoinPage> {
   late Future<List<CoinValue>> coinData;
   CoinValue? selectedCoin;
+  late Future<List<MarketData>> marketData;
 
   @override
   void initState() {
     super.initState();
     coinData = fetchCoinValues();
+    marketData = fetchMarketValues("bitcoin");
   }
 
   @override
@@ -49,7 +52,16 @@ class _CoinPageState extends State<CoinPage> {
             return Column(
               children: [
                 coinListWidget(coins),
-                if (selectedCoin != null) coinPriceChartWidget(selectedCoin!),
+                if (selectedCoin != null)
+                  Container(
+                      height: 300,
+                      padding: EdgeInsets.only(
+                          bottom: 20), // Add 20 padding to the bottom
+                      decoration: BoxDecoration(
+                        border: Border.all(), // Add borders to the container
+                      ),
+                      child: SingleChildScrollView(
+                          child: PriceTableWidget(coinName: selectedCoin!.id))),
               ],
             );
           }
@@ -77,25 +89,40 @@ class _CoinPageState extends State<CoinPage> {
       ),
     );
   }
+}
 
-  Widget coinPriceChartWidget(CoinValue coin) {
-    return Expanded(
-      child: LineChart(
-        LineChartData(
-          gridData: FlGridData(show: false),
-          titlesData: FlTitlesData(show: false),
-          borderData: FlBorderData(show: true),
-          lineBarsData: [
-            LineChartBarData(
-              spots: [
-                FlSpot(0,
-                    coin.priceUsd ?? 0), // Use 0 as x-axis value for simplicity
-                // Add more spots if needed
-              ],
-            ),
-          ],
-        ),
-      ),
+class PriceTableWidget extends StatelessWidget {
+  String coinName = "";
+
+  PriceTableWidget({super.key, required this.coinName});
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<MarketData>>(
+      future: fetchMarketValues(coinName),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else {
+          List<MarketData> marketData = snapshot.data!;
+          return DataTable(
+            columns: [
+              DataColumn(label: Text('Price')),
+              DataColumn(label: Text('Market name')),
+            ],
+            rows: marketData.map((data) {
+              return DataRow(
+                cells: [
+                  DataCell(Text(data.exchangeId)),
+                  DataCell(Text(data.priceUsd)),
+                ],
+              );
+            }).toList(),
+          );
+        }
+      },
     );
   }
 }
